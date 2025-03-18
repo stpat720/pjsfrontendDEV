@@ -1,11 +1,61 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import Video from "next-video";
 import MediaThemeInstaplay from "player.style/instaplay/react";
-// Import your Video component and any other dependencies as needed
+
+function VideoSlide({ mediaSrc, aspectRatio, title, index }) {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    const videoEl = videoRef.current;
+    if (!videoEl) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            videoEl.play().catch((error) => console.log("Play error:", error));
+          } else {
+            videoEl.pause();
+          }
+        });
+      },
+      {
+        threshold: 0.5, // Adjust this threshold as needed
+      }
+    );
+
+    observer.observe(videoEl);
+    return () => {
+      if (videoEl) observer.unobserve(videoEl);
+    };
+  }, []);
+
+  return (
+    <div
+      className="w-full video-container"
+      style={{ aspectRatio: aspectRatio, "--media-secondary-color": "#4a4a4a" }}
+    >
+      <Video
+        ref={videoRef}
+        src={`https://stream.mux.com/${mediaSrc}.m3u8`}
+        theme={MediaThemeInstaplay}
+        loop={true}
+        muted={true}
+        playsInline
+        autoPlay={false}
+        className="w-full h-full auto-hide-controls"
+        style={{
+          "--media-time-range-display": "none",
+          "--media-control-display": "none",
+        }}
+      />
+    </div>
+  );
+}
 
 export default function MySwiper({ item }) {
   const prevRef = useRef(null);
@@ -36,7 +86,7 @@ export default function MySwiper({ item }) {
         }}
       >
         {item.media.map((mediaSrc, idx) => {
-          // Determine if the source is a video (assumed to be a Mux ID) or an image URL
+          // Determine if media is video (assumed to be a Mux ID) or an image URL.
           const isVideo =
             !mediaSrc.startsWith("http") &&
             !mediaSrc.endsWith(".jpg") &&
@@ -46,32 +96,13 @@ export default function MySwiper({ item }) {
           return (
             <SwiperSlide key={idx}>
               {isVideo ? (
-                // Render Video
-                <div
-                  className="w-full"
-                  style={{
-                    aspectRatio: item.aspectRatio,
-                    "--media-secondary-color": "#4a4a4a",
-                  }}
-                >
-                  <Video
-                    src={`https://stream.mux.com/${mediaSrc}.m3u8`}
-                    theme={MediaThemeInstaplay}
-                    loop={idx === 0}
-                    muted={idx === 0}
-                    playsInline
-                    onLoadedMetadata={(e) => {
-                      if (idx === 0) {
-                        e.target.play().catch((error) =>
-                          console.log("Autoplay blocked:", error)
-                        );
-                      }
-                    }}
-                    className="w-full h-full"
-                  />
-                </div>
+                <VideoSlide
+                  mediaSrc={mediaSrc}
+                  aspectRatio={item.aspectRatio}
+                  title={item.title}
+                  index={idx}
+                />
               ) : (
-                // Render Image
                 <div
                   className="flex justify-center items-center w-full"
                   style={{ aspectRatio: item.aspectRatio }}
@@ -89,13 +120,29 @@ export default function MySwiper({ item }) {
       </Swiper>
 
       {/* Custom Navigation Buttons */}
-      <div ref={nextRef} className="absolute right-[-28px] top-1/2 -translate-y-1/2 flex items-center cursor-pointer">
-        <span className="text-gray-400 text-sm">{"❯"}</span> {/* Small right arrow */}
+      <div
+        ref={nextRef}
+        className="absolute right-[-28px] top-1/2 -translate-y-1/2 flex items-center cursor-pointer"
+      >
+        <span className="text-gray-400 text-sm">{"❯"}</span>
+      </div>
+      <div
+        ref={prevRef}
+        className="absolute left-[-28px] top-1/2 -translate-y-1/2 flex items-center cursor-pointer"
+      >
+        <span className="text-gray-400 text-sm">{"❮"}</span>
       </div>
 
-      <div ref={prevRef} className="absolute left-[-28px] top-1/2 -translate-y-1/2 flex items-center cursor-pointer">
-        <span className="text-gray-400 text-sm">{"❮"}</span>  {/* Small left arrow */}
-      </div>
+      {/* CSS to auto-hide video controls for a cleaner look */}
+      <style jsx>{`
+        .video-container video::-webkit-media-controls {
+          opacity: 0;
+          transition: opacity 0.5s;
+        }
+        .video-container:hover video::-webkit-media-controls {
+          opacity: 1;
+        }
+      `}</style>
     </div>
   );
 }

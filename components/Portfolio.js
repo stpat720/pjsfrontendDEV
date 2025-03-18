@@ -2,14 +2,13 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Video from "next-video";
-import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css"; // Swiper default styles
 import "swiper/css/navigation"; // If using navigation buttons
 import "swiper/css/pagination"; // If using pagination
-import { Navigation } from "swiper/modules";
 import MediaThemeInstaplay from "player.style/instaplay/react";
 import "../app/globals.css"; // Import global styles
 import MySwiper from "./shared/MySwiper";
+import AutoPlayVideo from "./shared/AutoPlayVideo";
 
 const CATEGORY_OPTIONS = ["photography", "motion", "design", "3D_art"];
 
@@ -172,18 +171,9 @@ const Portfolio = () => {
                             "--media-secondary-color": "#4a4a4a",
                           }}
                         >
-                          <Video
-                            src={
-                              item.media[0].startsWith("http")
-                                ? item.media[0]
-                                : `https://stream.mux.com/${item.media[0]}.m3u8`
-                            }
-                            theme={MediaThemeInstaplay}
-                            loop
-                            muted
-                            playsInline
-                            onLoadedMetadata={(e) => e.target.play()}
-                            className="w-full h-full"
+                          <AutoPlayVideo
+                            src={item.media[0]}
+                            aspectRatio={item.aspectRatio}
                           />
                         </div>
                       )}
@@ -191,6 +181,8 @@ const Portfolio = () => {
                   )}
                   {/* Right vertical line */}
                   <div className="absolute right-[-18px] top-0 w-[2px] hidden xl:block bg-gray-300 h-[70px]"></div>
+
+                  {/* CSS for auto-hiding video controls */}
                 </div>
               </div>
               <div className=" col-span-1 md:hidden"></div>{" "}

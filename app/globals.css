@@ -31,6 +31,14 @@ body {
 
 }
 
+.auto-hide-controls:hover {
+  --media-time-range-display: inline-block !important;
+  --media-control-display: inline-flex !important;
+}
+
+/* .auto-hide-controls:hover media-time-range {
+  --media-time-range-display: inline-block !important
+} */
 
 video {
   background: var(--video-player-background);
